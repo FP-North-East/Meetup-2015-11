@@ -3,23 +3,9 @@ import Prelude hiding ((/))
 import Data.List
 import Data.Time
 
+
 (%) = mod
 (/) = div
-
-
-main = run
-
-run =
-  do t <- getCurrentTime
-     timeZone <- getTimeZone t
-     let tod = localTimeOfDay $ utcToLocalTime timeZone t
-     let h = todHour tod
-     let min = todMin tod
-     let sec = todSec tod
-     let zt = utcToLocalZonedTime t
-     -- let c = Clock True 1 2 3 3
-     let d = mkClock h min sec
-     putStrLn $ render d
 
 
 data Clock = Clock
@@ -30,23 +16,21 @@ data Clock = Clock
   , oneMin :: Int
   } deriving (Show)
 
+
 render
   :: Clock
   -> String
 render (Clock evenSec fiveHr oneHr fiveMin oneMin) =
   intercalate "\n"
-  [ r1
-  , r2
-  , r3
-  , r4
-  , r5
+  [ if evenSec then "*" else "0"
+  , f fiveHr
+  , f oneHr
+  , f fiveMin
+  , f oneMin
   ]
   where
-    r1 = if evenSec then "*" else "0"
-    r2 = replicate (fiveHr) '*'
-    r3 = replicate (oneHr) '*'
-    r4 = replicate (fiveMin) '*'
-    r5 = replicate (oneMin) '*'
+    f n = replicate n '*'
+
 
 mkClock
   :: Int -- hr
@@ -57,4 +41,12 @@ mkClock hr min sec =
   Clock (mod' sec 2==0) (hr/5) (hr%5) (min/5) (min%5)
 
 
+run =
+  do t <- getCurrentTime
+     timeZone <- getTimeZone t
+     let TimeOfDay h min sec = localTimeOfDay $ utcToLocalTime timeZone t
+     let d = mkClock h min sec
+     putStrLn $ render d
 
+
+main = run
